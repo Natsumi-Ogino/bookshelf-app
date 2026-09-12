@@ -26,6 +26,38 @@ class BasicAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_register_with_duplicate_email(): void
+    {
+        User::factory()->create([
+            'email' => 'existing@example.com',
+        ]);
+
+        $this->post('/register', [
+            'name' => '新規ユーザー',
+            'email' => 'existing@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 1);
+    }
+
+    public function test_user_cannot_register_when_password_confirmation_does_not_match(): void
+    {
+        $this->post('/register', [
+            'name' => '新規ユーザー',
+            'email' => 'new-user@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'different-password',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', [
+            'email' => 'new-user@example.com',
+        ]);
+    }
+
     public function test_registered_user_can_log_in(): void
     {
         $user = User::factory()->create([
@@ -38,6 +70,20 @@ class BasicAuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_user_cannot_log_in_with_incorrect_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password',
+        ]);
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'incorrect-password',
+        ]);
+
+        $this->assertGuest();
     }
 
     public function test_authenticated_user_can_log_out(): void
