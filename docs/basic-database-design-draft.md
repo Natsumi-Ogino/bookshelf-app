@@ -2,28 +2,31 @@
 
 ## この文書の位置付け
 
-この文書は、要件シートのシート11「データ要件」、シート12「テーブル仕様書」、2026年9月8日のコーチ回答を基にした面談前の下書きです。
+この文書は、要件シートのシート11「データ要件」、シート12「テーブル仕様書」、2026年9月8日および9月15日のコーチ回答を基にした設計案です。
 
-2026年9月15日の面談で確認する項目は「確認待ち」と記載しています。確認待ちの内容は、回答を得るまで確定仕様として実装しません。
+コーチへ追加確認中の内容は「確認待ち」と記載しています。確認待ちの内容は、回答を得るまで確定仕様として実装しません。
 
 ## 確定済みの設計方針
 
 - 1ユーザーが同じ書籍へ投稿できるレビューは1件までとする。
 - `reviews`の`user_id`と`book_id`には複合ユニーク制約を設定する。
 - `book_genre`は`id`とtimestampsを持たせず、`book_id`と`genre_id`を複合主キーとする。
-- `favorites`と`review_likes`は`id`を主キーとして持たせる。
+- `favorites`と`review_likes`は`id`を主キーとして持たせ、2つの外部キーに複合ユニーク制約を設定する。
+- `favorites`と`review_likes`は`created_at`と`updated_at`を持たせない。
 - ユーザー、書籍、レビューを削除した場合、従属する関連データはcascadeで削除する。
 - 書籍が紐付いているジャンルは削除できないようにする。
 - `books.image_url`はNULLを許可し、最大長は2048文字とする。
+- `books.isbn`は`VARCHAR(13)`とし、ユニーク制約を設定する。
+- `reviews.comment`は必須入力、最大1000文字、NULL不可とする。
+- 自分が投稿したレビューにはいいねできないようにする。
 - Basic版の`users`にはFortifyの二要素認証用3カラムを保持する。
 
 ## 確認待ちの設計項目
 
-1. `books`の各カラム型が、次の案で問題ないか。
-2. `favorites`と`review_likes`に複合ユニーク制約とtimestampsを持たせるか。
-3. `reviews.comment`を任意入力、最大1000文字、NULL許可とするか。
+1. Basic版の`books.isbn`を必須入力とするか、NULLを許可するか。
+2. 要件シートとリポジトリ内の設計文書を設計書として扱ってよいか、別形式の設計書が必要か。
 
-## ER図（面談前の下書き）
+## ER図（設計案）
 
 ```mermaid
 erDiagram
@@ -56,7 +59,7 @@ erDiagram
         bigint_unsigned user_id FK
         varchar_255 title
         varchar_255 author
-        char_13 isbn UK
+        varchar_13 isbn UK "NULL可否は確認待ち"
         date published_date
         text description "NULL可"
         varchar_2048 image_url "NULL可"
@@ -81,7 +84,7 @@ erDiagram
         bigint_unsigned user_id FK
         bigint_unsigned book_id FK
         tinyint_unsigned rating
-        text comment "確認待ち・NULL可案"
+        text comment
         timestamp created_at "NULL可"
         timestamp updated_at "NULL可"
     }
@@ -90,20 +93,16 @@ erDiagram
         bigint_unsigned id PK
         bigint_unsigned user_id FK
         bigint_unsigned book_id FK
-        timestamp created_at "確認待ち"
-        timestamp updated_at "確認待ち"
     }
 
     REVIEW_LIKES {
         bigint_unsigned id PK
         bigint_unsigned user_id FK
         bigint_unsigned review_id FK
-        timestamp created_at "確認待ち"
-        timestamp updated_at "確認待ち"
     }
 ```
 
-`books`の型、`reviews.comment`のNULL可否、`favorites`と`review_likes`のtimestampsは、2026年9月15日の回答によって確定します。
+`books.isbn`のNULL可否だけは追加確認中です。ER図画像は、この回答を得てから一度だけ更新します。
 
 ## テーブル仕様案
 
@@ -123,7 +122,7 @@ erDiagram
 | created_at | TIMESTAMP | 可 | Laravel timestamps |
 | updated_at | TIMESTAMP | 可 | Laravel timestamps |
 
-### books（型は2026年9月15日に確認）
+### books
 
 | カラム | 型の案 | NULL | 制約・補足 |
 |---|---|---|---|
@@ -131,8 +130,8 @@ erDiagram
 | user_id | BIGINT UNSIGNED | 不可 | `users.id`への外部キー、ユーザー削除時cascade |
 | title | VARCHAR(255) | 不可 |  |
 | author | VARCHAR(255) | 不可 |  |
-| isbn | CHAR(13) | 不可 | ユニーク |
-| published_date | DATE | 不可 | Advanced版ではNULL許可へ変更予定 |
+| isbn | VARCHAR(13) | 確認待ち | 半角数字13桁、ユニーク。Basic版で必須かNULL許可かを追加確認中 |
+| published_date | DATE | 不可 | Advanced版のNULL可否はAdvanced版着手時に検討 |
 | description | TEXT | 可 |  |
 | image_url | VARCHAR(2048) | 可 | 最大長は承認済み |
 | created_at | TIMESTAMP | 可 | Laravel timestamps |
@@ -166,7 +165,7 @@ erDiagram
 | user_id | BIGINT UNSIGNED | 不可 | `users.id`への外部キー、ユーザー削除時cascade |
 | book_id | BIGINT UNSIGNED | 不可 | `books.id`への外部キー、書籍削除時cascade |
 | rating | TINYINT UNSIGNED | 不可 | 1から5まで |
-| comment | TEXT | 確認待ち | 任意入力、最大1000文字、NULL許可の案 |
+| comment | TEXT | 不可 | 必須入力、最大1000文字 |
 | created_at | TIMESTAMP | 可 | Laravel timestamps |
 | updated_at | TIMESTAMP | 可 | Laravel timestamps |
 
@@ -179,10 +178,8 @@ erDiagram
 | id | BIGINT UNSIGNED | 不可 | 主キー、保持する方針は承認済み |
 | user_id | BIGINT UNSIGNED | 不可 | `users.id`への外部キー、ユーザー削除時cascade |
 | book_id | BIGINT UNSIGNED | 不可 | `books.id`への外部キー、書籍削除時cascade |
-| created_at | TIMESTAMP | 確認待ち | 保持する案 |
-| updated_at | TIMESTAMP | 確認待ち | 保持する案 |
 
-`user_id`と`book_id`への複合ユニーク制約は確認待ちです。
+`user_id`と`book_id`の組み合わせに複合ユニーク制約を設定します。`created_at`と`updated_at`は持たせません。
 
 ### review_likes
 
@@ -191,10 +188,8 @@ erDiagram
 | id | BIGINT UNSIGNED | 不可 | 主キー、保持する方針は承認済み |
 | user_id | BIGINT UNSIGNED | 不可 | `users.id`への外部キー、ユーザー削除時cascade |
 | review_id | BIGINT UNSIGNED | 不可 | `reviews.id`への外部キー、レビュー削除時cascade |
-| created_at | TIMESTAMP | 確認待ち | 保持する案 |
-| updated_at | TIMESTAMP | 確認待ち | 保持する案 |
 
-`user_id`と`review_id`への複合ユニーク制約は確認待ちです。
+`user_id`と`review_id`の組み合わせに複合ユニーク制約を設定します。`created_at`と`updated_at`は持たせません。また、`review_id`がログインユーザー自身のレビューを指す場合は、いいねを登録できないようにします。
 
 ## Laravel標準認証補助テーブル
 
@@ -246,11 +241,9 @@ erDiagram
 | レビュー | レビューへのいいねをcascade削除 |
 | ジャンル | 書籍が紐付いている場合は削除を拒否。紐付いていない場合だけ削除可能 |
 
-## 2026年9月15日の回答後に更新する場所
+## 追加回答後に更新する場所
 
-| 回答内容 | 更新対象 |
+| 確認中の内容 | 回答後の更新対象 |
 |---|---|
-| `books`の型 | `books`のMigration、この文書のER図とテーブル仕様 |
-| `reviews.comment`の仕様 | `reviews`のMigration、Review用FormRequest、Blade、テスト、この文書 |
-| `favorites`の制約とtimestamps | `favorites`のMigration、User・Bookモデル、Seeder、テスト、この文書 |
-| `review_likes`の制約とtimestamps | `review_likes`のMigration、User・Reviewモデル、Seeder、テスト、この文書 |
+| Basic版の`books.isbn`のNULL可否 | `books`のMigration、FormRequest、Seeder、テスト、この文書、ER図画像 |
+| 設計書として必要な成果物の範囲 | 要件シートとリポジトリ内の設計文書 |
