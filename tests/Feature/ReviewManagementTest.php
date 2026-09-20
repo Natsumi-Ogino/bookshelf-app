@@ -76,9 +76,64 @@ class ReviewManagementTest extends TestCase
 
         $response
             ->assertRedirect(route('books.show', $book))
-            ->assertSessionHasErrors(['rating', 'comment']);
+            ->assertSessionHasErrors([
+                'rating' => '評価は1〜5の整数で入力してください。',
+                'comment',
+            ]);
 
         $this->assertDatabaseCount('reviews', 0);
+    }
+
+    public function test_store_review_uses_approved_required_rating_message(): void
+    {
+        $user = User::factory()->create();
+        $book = $this->createBook($user);
+
+        $this->actingAs($user)
+            ->from(route('books.show', $book))
+            ->post(route('reviews.store', $book), [
+                'comment' => '評価が未入力のレビューです。',
+            ])
+            ->assertRedirect(route('books.show', $book))
+            ->assertSessionHasErrors([
+                'rating' => '評価は必須です。',
+            ]);
+
+        $this->assertDatabaseCount('reviews', 0);
+    }
+
+    public function test_update_review_uses_approved_rating_error_messages(): void
+    {
+        $user = User::factory()->create();
+        $book = $this->createBook($user);
+        $review = $this->createReview($user, $book);
+
+        $this->actingAs($user)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'comment' => '評価が未入力の更新です。',
+            ])
+            ->assertRedirect(route('reviews.edit', $review))
+            ->assertSessionHasErrors([
+                'rating' => '評価は必須です。',
+            ]);
+
+        $this->actingAs($user)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'rating' => '不正な値',
+                'comment' => '評価が整数ではない更新です。',
+            ])
+            ->assertRedirect(route('reviews.edit', $review))
+            ->assertSessionHasErrors([
+                'rating' => '評価は1〜5の整数で入力してください。',
+            ]);
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'rating' => 4,
+            'comment' => 'テスト用レビューです。',
+        ]);
     }
 
     public function test_user_cannot_post_second_review_for_same_book(): void

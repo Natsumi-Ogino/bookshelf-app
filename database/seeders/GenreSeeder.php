@@ -21,7 +21,7 @@ class GenreSeeder extends Seeder
             '歴史',
             '科学',
             '芸術',
-            '教育',
+            '料理',
             '旅行',
         ];
 

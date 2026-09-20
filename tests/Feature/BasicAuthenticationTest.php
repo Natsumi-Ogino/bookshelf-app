@@ -126,10 +126,14 @@ class BasicAuthenticationTest extends TestCase
             ->post('/logout');
 
         $response
-            ->assertRedirect('/')
+            ->assertRedirect(route('login'))
             ->assertSessionHas('success', 'ログアウトしました。');
 
         $this->assertGuest();
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('ログアウトしました。');
     }
 
     public function test_unused_authentication_features_are_disabled(): void

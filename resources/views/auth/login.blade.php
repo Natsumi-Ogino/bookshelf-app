@@ -1,4 +1,10 @@
 <x-guest-layout>
+    @if (session('success'))
+        <div class="mb-4 font-medium text-sm text-green-600">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('login') }}" novalidate>
         @csrf
         <!-- Email Address -->

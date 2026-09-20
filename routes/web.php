@@ -39,7 +39,7 @@ Route::middleware('auth')->group(function () {
         ->name('reviews.like');
     Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
-    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
+    Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])
         ->name('favorites.toggle');
 });
 

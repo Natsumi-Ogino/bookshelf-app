@@ -5,11 +5,21 @@ namespace Tests\Feature;
 use App\Models\Book;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class FavoriteManagementTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_favorite_toggle_route_uses_required_uri_and_http_method(): void
+    {
+        $route = Route::getRoutes()->getByName('favorites.toggle');
+
+        $this->assertNotNull($route);
+        $this->assertSame('books/{book}/favorites', $route->uri());
+        $this->assertSame(['POST'], $route->methods());
+    }
 
     public function test_guest_cannot_use_favorite_routes(): void
     {
@@ -60,6 +70,23 @@ class FavoriteManagementTest extends TestCase
             ->assertSessionHas('success', 'お気に入りに追加しました。');
 
         $this->assertDatabaseCount('favorites', 1);
+    }
+
+    public function test_favorite_index_displays_success_message_after_removal(): void
+    {
+        $user = User::factory()->create();
+        $book = $this->createBook($user);
+        $user->favoriteBooks()->attach($book);
+
+        $this->actingAs($user)
+            ->from(route('favorites.index'))
+            ->post(route('favorites.toggle', $book))
+            ->assertRedirect(route('favorites.index'))
+            ->assertSessionHas('success', 'お気に入りを解除しました。');
+
+        $this->get(route('favorites.index'))
+            ->assertOk()
+            ->assertSee('お気に入りを解除しました。');
     }
 
     public function test_favorite_index_shows_only_authenticated_users_books_ten_per_page(): void

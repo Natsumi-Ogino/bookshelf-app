@@ -23,7 +23,7 @@ class GenreSeederTest extends TestCase
             '歴史',
             '科学',
             '芸術',
-            '教育',
+            '料理',
             '旅行',
         ];
 
@@ -34,6 +34,10 @@ class GenreSeederTest extends TestCase
                 'name' => $genre,
             ]);
         }
+
+        $this->assertDatabaseMissing('genres', [
+            'name' => '教育',
+        ]);
     }
 
     public function test_it_does_not_duplicate_genres_when_run_multiple_times(): void

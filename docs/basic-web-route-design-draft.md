@@ -41,7 +41,7 @@
 | PUT | `/reviews/{review}` | `reviews.update` | `ReviewController@update` | レビュー投稿者 |
 | DELETE | `/reviews/{review}` | `reviews.destroy` | `ReviewController@destroy` | レビュー投稿者 |
 | GET | `/favorites` | `favorites.index` | `FavoriteController@index` | なし |
-| POST | `/books/{book}/favorite` | `favorites.toggle` | `FavoriteController@toggle` | 重複登録を防止 |
+| POST | `/books/{book}/favorites` | `favorites.toggle` | `FavoriteController@toggle` | 重複登録を防止 |
 | POST | `/reviews/{review}/like` | `reviews.like` | `ReviewLikeController@toggle` | 重複登録を防止し、自分のレビューへのいいねを禁止 |
 | GET | `/genres` | `genres.index` | `GenreController@index` | なし |
 | GET | `/genres/create` | `genres.create` | `GenreController@create` | なし |
@@ -210,7 +210,7 @@ Web画面のバリデーションエラーは各入力欄の付近に日本語�
 |---|---|---|
 | 会員登録 | 書籍一覧画面（`/`） | 会員登録が完了しました。 |
 | ログイン | 認証が必要な画面から移動した場合は元の画面、それ以外は書籍一覧画面（`/`） | ログインしました。 |
-| ログアウト | 書籍一覧画面（`/`） | ログアウトしました。 |
+| ログアウト | ログイン画面（`/login`） | ログアウトしました。 |
 | 書籍登録 | 登録した書籍の詳細画面 | 書籍を登録しました。 |
 | 書籍更新 | 更新した書籍の詳細画面 | 書籍を更新しました。 |
 | 書籍削除 | 書籍一覧画面（`/`） | 書籍を削除しました。 |
