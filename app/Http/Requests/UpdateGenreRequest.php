@@ -33,4 +33,18 @@ class UpdateGenreRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * Get the validation error messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'ジャンル名は必須です。',
+            'name.max' => 'ジャンル名は255文字以内で入力してください。',
+            'name.unique' => 'そのジャンル名は既に使用されています。',
+        ];
+    }
 }
