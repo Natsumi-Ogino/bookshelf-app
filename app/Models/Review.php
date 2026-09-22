@@ -14,6 +14,7 @@ class Review extends Model
     protected $fillable = [
         'rating',
         'comment',
+        'book_id',
     ];
 
     protected $casts = [

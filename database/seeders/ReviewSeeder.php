@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Book;
-use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use RuntimeException;
@@ -86,16 +85,15 @@ class ReviewSeeder extends Seeder
                 $rating = 3 + (($bookIndex + $reviewIndex) % 3);
                 $commentOptions = $comments[$rating];
 
-                $review = new Review([
-                    'rating' => $rating,
-                    'comment' => $commentOptions[
-                        ($bookIndex + $reviewIndex) % count($commentOptions)
-                    ],
-                ]);
-
-                $review->user()->associate($users->get($userIndex));
-                $review->book()->associate($book);
-                $review->save();
+                $users->get($userIndex)
+                    ->reviews()
+                    ->create([
+                        'book_id' => $book->getKey(),
+                        'rating' => $rating,
+                        'comment' => $commentOptions[
+                            ($bookIndex + $reviewIndex) % count($commentOptions)
+                        ],
+                    ]);
             }
         }
     }
