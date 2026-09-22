@@ -39,11 +39,15 @@ class BasicAuthenticationTest extends TestCase
             'email' => 'existing@example.com',
         ]);
 
-        $this->post('/register', [
+        $response = $this->post('/register', [
             'name' => '新規ユーザー',
             'email' => 'existing@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'email' => 'そのメールアドレスは既に使用されています。',
         ]);
 
         $this->assertGuest();
@@ -52,17 +56,71 @@ class BasicAuthenticationTest extends TestCase
 
     public function test_user_cannot_register_when_password_confirmation_does_not_match(): void
     {
-        $this->post('/register', [
+        $response = $this->post('/register', [
             'name' => '新規ユーザー',
             'email' => 'new-user@example.com',
             'password' => 'password',
             'password_confirmation' => 'different-password',
         ]);
 
+        $response->assertSessionHasErrors([
+            'password' => 'パスワードと一致しません',
+        ]);
+
         $this->assertGuest();
         $this->assertDatabaseMissing('users', [
             'email' => 'new-user@example.com',
         ]);
+    }
+
+    public function test_registration_required_messages_match_approved_text(): void
+    {
+        $response = $this->post('/register', []);
+
+        $response->assertSessionHasErrors([
+            'name' => 'お名前を入力してください',
+            'email' => 'メールアドレスを入力してください',
+            'password' => 'パスワードを入力してください',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_registration_format_and_length_messages_match_approved_text(): void
+    {
+        $response = $this->post('/register', [
+            'name' => str_repeat('a', 256),
+            'email' => 'invalid-email',
+            'password' => 'short',
+            'password_confirmation' => 'short',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'name' => '名前は255文字以内で入力してください。',
+            'email' => 'メールアドレスはメール形式で入力してください',
+            'password' => 'パスワードは8文字以上で入力してください。',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_registration_email_length_message_matches_approved_text(): void
+    {
+        $response = $this->post('/register', [
+            'name' => '新規ユーザー',
+            'email' => str_repeat('a', 250).'@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'email' => 'メールアドレスは255文字以内で入力してください。',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
     }
 
     public function test_registered_user_can_log_in(): void
@@ -109,9 +167,39 @@ class BasicAuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->post('/login', [
+        $response = $this->post('/login', [
             'email' => $user->email,
             'password' => 'incorrect-password',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'email' => 'ログイン情報が登録されていません',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    public function test_login_required_messages_match_approved_text(): void
+    {
+        $response = $this->post('/login', []);
+
+        $response->assertSessionHasErrors([
+            'email' => 'メールアドレスを入力してください',
+            'password' => 'パスワードを入力してください',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    public function test_login_rejects_non_email_with_approved_message(): void
+    {
+        $response = $this->post('/login', [
+            'email' => 'not-an-email',
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'email' => 'メールアドレスはメール形式で入力してください',
         ]);
 
         $this->assertGuest();
