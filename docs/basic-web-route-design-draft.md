@@ -87,7 +87,7 @@
 | `index` | `favorites.index` | `$books` | ログインユーザーのお気に入り書籍を10件ずつ表示 |
 | `toggle` | なし | なし | 対象書籍のお気に入りを追加または解除 |
 
-一覧取得時は書籍のジャンルをEager Loadingします。
+一覧取得時は、お気に入り登録が新しい順に10件ずつページネーションします。
 
 ### ReviewLikeController
 
