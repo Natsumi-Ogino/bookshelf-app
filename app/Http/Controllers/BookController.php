@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -15,15 +17,54 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(IndexBookRequest $request): View
     {
-        $books = Book::query()
+        $filters = $request->validated();
+        $sort = $filters['sort'] ?? 'latest';
+
+        $genres = Genre::query()
+            ->orderBy('name')
+            ->get();
+
+        $booksQuery = Book::query()
             ->with('genres')
             ->withAvg('reviews', 'rating')
-            ->latest()
-            ->paginate(10);
+            ->withCount('reviews')
+            ->when($filters['keyword'] ?? null, function (Builder $query, string $keyword): void {
+                $query->where(function (Builder $query) use ($keyword): void {
+                    $query->where('title', 'like', "%{$keyword}%")
+                        ->orWhere('author', 'like', "%{$keyword}%");
+                });
+            })
+            ->when($filters['genre'] ?? null, function (Builder $query, int|string $genreId): void {
+                $query->whereHas(
+                    'genres',
+                    fn (Builder $genreQuery) => $genreQuery->whereKey($genreId)
+                );
+            });
 
-        return view('books.index', compact('books'));
+        $booksQuery = match ($sort) {
+            'oldest' => $booksQuery
+                ->orderBy('created_at')
+                ->orderBy('id'),
+            'title' => $booksQuery
+                ->orderBy('title')
+                ->orderBy('id'),
+            'rating' => $booksQuery
+                ->orderByRaw('CASE WHEN reviews_avg_rating IS NULL THEN 1 ELSE 0 END')
+                ->orderByDesc('reviews_avg_rating')
+                ->orderByDesc('reviews_count')
+                ->orderBy('id'),
+            default => $booksQuery
+                ->orderByDesc('created_at')
+                ->orderBy('id'),
+        };
+
+        $books = $booksQuery
+            ->paginate(10)
+            ->appends($filters);
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**
