@@ -35,14 +35,14 @@ class UpdateBookRequest extends FormRequest
                 'max:255',
             ],
             'isbn' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/\A[0-9]{13}\z/',
                 Rule::unique('books', 'isbn')
                     ->ignore($this->route('book')),
             ],
             'published_date' => [
-                'required',
+                'nullable',
                 'date',
             ],
             'description' => [
@@ -79,10 +79,8 @@ class UpdateBookRequest extends FormRequest
             'title.max' => 'タイトルは255文字以内で入力してください。',
             'author.required' => '著者名は必須です。',
             'author.max' => '著者名は255文字以内で入力してください。',
-            'isbn.required' => 'ISBNは必須です。',
             'isbn.regex' => 'ISBNは13桁で入力してください。',
             'isbn.unique' => 'このISBNは既に登録されています。',
-            'published_date.required' => '出版日は必須です。',
             'published_date.date' => '出版日は有効な日付形式で入力してください。',
             'image_url.url' => '画像URLは有効なURL形式で入力してください。',
             'image_url.max' => '画像URLは2048文字以内で入力してください。',

@@ -46,6 +46,10 @@ class UpdateBookRequest extends WebUpdateBookRequest
             'regex:/\A[0-9]{13}\z/',
             $uniqueIsbn,
         ];
+        $rules['published_date'] = [
+            'required',
+            'date',
+        ];
 
         return [
             'user_id' => ['bail', 'required', 'integer', 'exists:users,id'],
@@ -58,6 +62,8 @@ class UpdateBookRequest extends WebUpdateBookRequest
             'user_id.required' => '登録者IDは必須です。',
             'user_id.integer' => '指定された登録者は存在しません。',
             'user_id.exists' => '指定された登録者は存在しません。',
+            'isbn.required' => 'ISBNは必須です。',
+            'published_date.required' => '出版日は必須です。',
         ] + parent::messages();
     }
 

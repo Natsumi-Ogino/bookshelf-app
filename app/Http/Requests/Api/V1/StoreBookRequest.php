@@ -15,9 +15,21 @@ class StoreBookRequest extends WebStoreBookRequest
 
     public function rules(): array
     {
+        $rules = parent::rules();
+        $rules['isbn'] = [
+            'required',
+            'string',
+            'regex:/\A[0-9]{13}\z/',
+            'unique:books,isbn',
+        ];
+        $rules['published_date'] = [
+            'required',
+            'date',
+        ];
+
         return [
             'user_id' => ['bail', 'required', 'integer', 'exists:users,id'],
-        ] + parent::rules();
+        ] + $rules;
     }
 
     public function messages(): array
@@ -26,6 +38,8 @@ class StoreBookRequest extends WebStoreBookRequest
             'user_id.required' => '登録者IDは必須です。',
             'user_id.integer' => '指定された登録者は存在しません。',
             'user_id.exists' => '指定された登録者は存在しません。',
+            'isbn.required' => 'ISBNは必須です。',
+            'published_date.required' => '出版日は必須です。',
         ] + parent::messages();
     }
 
