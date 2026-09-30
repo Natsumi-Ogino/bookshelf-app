@@ -89,7 +89,7 @@ class GoogleBooksService
 
         return $authors === []
             ? null
-            : implode(', ', $authors);
+            : implode('、', $authors);
     }
 
     private function normalizePublishedDate(mixed $date): ?string
@@ -99,10 +99,9 @@ class GoogleBooksService
         }
 
         $matched = preg_match(
-            '/\A(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?\z/',
+            '/\A(\d{4})-(\d{2})-(\d{2})\z/',
             $date,
-            $matches,
-            PREG_UNMATCHED_AS_NULL
+            $matches
         );
 
         if ($matched !== 1) {
@@ -110,8 +109,8 @@ class GoogleBooksService
         }
 
         $year = (int) $matches[1];
-        $month = (int) ($matches[2] ?? 1);
-        $day = (int) ($matches[3] ?? 1);
+        $month = (int) $matches[2];
+        $day = (int) $matches[3];
 
         if (! checkdate($month, $day, $year)) {
             return null;

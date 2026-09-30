@@ -77,7 +77,7 @@ class BookIsbnLookupTest extends TestCase
             ->assertOk()
             ->assertExactJson([
                 'title' => '吾輩は猫である',
-                'author' => '夏目漱石, 共同著者',
+                'author' => '夏目漱石、共同著者',
                 'published_date' => '1905-01-01',
                 'description' => '書籍の説明です。',
                 'image_url' => 'https://example.com/book.jpg',
@@ -102,9 +102,9 @@ class BookIsbnLookupTest extends TestCase
     }
 
     #[DataProvider('publishedDateProvider')]
-    public function test_partial_published_date_is_normalized(
+    public function test_published_date_is_normalized_only_when_complete(
         string $sourceDate,
-        string $expectedDate
+        ?string $expectedDate
     ): void {
         Http::preventStrayRequests();
         Http::fake([
@@ -124,12 +124,12 @@ class BookIsbnLookupTest extends TestCase
             ->assertJsonPath('published_date', $expectedDate);
     }
 
-    /** @return array<string, array{string, string}> */
+    /** @return array<string, array{string, ?string}> */
     public static function publishedDateProvider(): array
     {
         return [
-            'year only' => ['2020', '2020-01-01'],
-            'year and month' => ['2020-05', '2020-05-01'],
+            'year only' => ['2020', null],
+            'year and month' => ['2020-05', null],
             'full date' => ['2020-05-10', '2020-05-10'],
         ];
     }
