@@ -6,20 +6,23 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookStoreApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_store_book_with_owner_and_genres(): void
+    public function test_authenticated_user_can_store_book_as_owner_with_genres(): void
     {
         $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
         $firstGenre = Genre::query()->create(['name' => '小説']);
         $secondGenre = Genre::query()->create(['name' => '料理']);
+        Sanctum::actingAs($owner);
 
         $response = $this->postJson('/api/v1/books', [
-            'user_id' => $owner->id,
+            'user_id' => $otherUser->id,
             'title' => 'テスト書籍',
             'author' => 'テスト著者',
             'isbn' => '9784000000001',
@@ -69,7 +72,7 @@ class BookStoreApiTest extends TestCase
         ]);
     }
 
-    public function test_missing_owner_returns_422_without_creating_book(): void
+    public function test_guest_cannot_store_book(): void
     {
         $genre = Genre::query()->create(['name' => '小説']);
 
@@ -82,17 +85,19 @@ class BookStoreApiTest extends TestCase
         ]);
 
         $response
-            ->assertStatus(422)
-            ->assertJsonPath('message', '登録者IDは必須です。')
-            ->assertJsonPath('errors.user_id.0', '登録者IDは必須です。');
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'error' => '認証が必要です。',
+            ]);
 
         $this->assertSame(0, Book::query()->count());
     }
 
-    public function test_invalid_owner_and_genre_return_422_without_creating_book(): void
+    public function test_invalid_genre_returns_422_without_creating_book(): void
     {
+        Sanctum::actingAs(User::factory()->create());
+
         $response = $this->postJson('/api/v1/books', [
-            'user_id' => 999999,
             'title' => 'テスト書籍',
             'author' => 'テスト著者',
             'isbn' => '9784000000001',
@@ -101,8 +106,7 @@ class BookStoreApiTest extends TestCase
         ]);
 
         $response
-            ->assertStatus(422)
-            ->assertJsonPath('errors.user_id.0', '指定された登録者は存在しません。');
+            ->assertStatus(422);
 
         $this->assertSame(
             '選択されたジャンルは存在しません。',

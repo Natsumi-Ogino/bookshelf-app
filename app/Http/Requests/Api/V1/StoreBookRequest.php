@@ -27,17 +27,12 @@ class StoreBookRequest extends WebStoreBookRequest
             'date',
         ];
 
-        return [
-            'user_id' => ['bail', 'required', 'integer', 'exists:users,id'],
-        ] + $rules;
+        return $rules;
     }
 
     public function messages(): array
     {
         return [
-            'user_id.required' => '登録者IDは必須です。',
-            'user_id.integer' => '指定された登録者は存在しません。',
-            'user_id.exists' => '指定された登録者は存在しません。',
             'isbn.required' => 'ISBNは必須です。',
             'published_date.required' => '出版日は必須です。',
         ] + parent::messages();

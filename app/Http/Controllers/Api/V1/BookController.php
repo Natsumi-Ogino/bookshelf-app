@@ -8,7 +8,6 @@ use App\Http\Requests\Api\V1\StoreBookRequest;
 use App\Http\Requests\Api\V1\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -45,13 +44,11 @@ class BookController extends Controller
     public function store(StoreBookRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $userId = $validated['user_id'];
         $genreIds = $validated['genres'];
-        unset($validated['user_id'], $validated['genres']);
+        unset($validated['genres']);
 
-        $book = DB::transaction(function () use ($userId, $genreIds, $validated): Book {
-            $user = User::query()->findOrFail($userId);
-            $book = $user->books()->create($validated);
+        $book = DB::transaction(function () use ($request, $genreIds, $validated): Book {
+            $book = $request->user()->books()->create($validated);
             $book->genres()->sync($genreIds);
 
             return $book;
@@ -100,15 +97,14 @@ class BookController extends Controller
             ], 404);
         }
 
-        $validated = $request->validated();
-        $userId = $validated['user_id'];
-        $genreIds = $validated['genres'];
-        unset($validated['user_id'], $validated['genres']);
+        $this->authorize('update', $book);
 
-        DB::transaction(function () use ($book, $userId, $genreIds, $validated): void {
-            $user = User::query()->findOrFail($userId);
+        $validated = $request->validated();
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        DB::transaction(function () use ($book, $genreIds, $validated): void {
             $book->fill($validated);
-            $book->user()->associate($user);
             $book->save();
             $book->genres()->sync($genreIds);
         });
@@ -132,6 +128,8 @@ class BookController extends Controller
                 'error' => '書籍が見つかりませんでした。',
             ], 404);
         }
+
+        $this->authorize('delete', $book);
 
         $book->delete();
 

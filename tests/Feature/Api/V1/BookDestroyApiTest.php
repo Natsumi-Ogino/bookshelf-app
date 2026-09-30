@@ -6,13 +6,14 @@ use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookDestroyApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_delete_book_and_related_records_with_empty_204_response(): void
+    public function test_owner_can_delete_book_and_related_records_with_empty_204_response(): void
     {
         $owner = User::factory()->create();
         $reviewer = User::factory()->create();
@@ -38,6 +39,7 @@ class BookDestroyApiTest extends TestCase
         $review->book()->associate($book);
         $review->save();
         $review->likedByUsers()->attach($owner);
+        Sanctum::actingAs($owner);
 
         $this->deleteJson("/api/v1/books/{$book->id}")
             ->assertNoContent();
@@ -54,6 +56,8 @@ class BookDestroyApiTest extends TestCase
 
     public function test_missing_book_returns_only_approved_404_error(): void
     {
+        Sanctum::actingAs(User::factory()->create());
+
         $this->deleteJson('/api/v1/books/999999')
             ->assertStatus(404)
             ->assertExactJson([
@@ -72,11 +76,56 @@ class BookDestroyApiTest extends TestCase
             'description' => null,
             'image_url' => null,
         ]);
+        Sanctum::actingAs($owner);
 
         $this->deleteJson("/api/v1/books/{$book->id}invalid")
             ->assertStatus(404)
             ->assertExactJson([
                 'error' => '書籍が見つかりませんでした。',
+            ]);
+
+        $this->assertDatabaseHas('books', ['id' => $book->id]);
+    }
+
+    public function test_guest_cannot_delete_book(): void
+    {
+        $owner = User::factory()->create();
+        $book = $owner->books()->create([
+            'title' => '削除しない書籍',
+            'author' => 'テスト著者',
+            'isbn' => '9784000000001',
+            'published_date' => '2026-09-20',
+            'description' => null,
+            'image_url' => null,
+        ]);
+
+        $this->deleteJson("/api/v1/books/{$book->id}")
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'error' => '認証が必要です。',
+            ]);
+
+        $this->assertDatabaseHas('books', ['id' => $book->id]);
+    }
+
+    public function test_non_owner_cannot_delete_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = $owner->books()->create([
+            'title' => '削除しない書籍',
+            'author' => 'テスト著者',
+            'isbn' => '9784000000001',
+            'published_date' => '2026-09-20',
+            'description' => null,
+            'image_url' => null,
+        ]);
+        Sanctum::actingAs($otherUser);
+
+        $this->deleteJson("/api/v1/books/{$book->id}")
+            ->assertForbidden()
+            ->assertExactJson([
+                'error' => 'この操作を実行する権限がありません。',
             ]);
 
         $this->assertDatabaseHas('books', ['id' => $book->id]);

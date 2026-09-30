@@ -6,13 +6,14 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookUpdateApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_update_book_owner_and_genres_without_changing_isbn(): void
+    public function test_owner_can_update_book_without_changing_owner_or_isbn(): void
     {
         $originalOwner = User::factory()->create();
         $newOwner = User::factory()->create();
@@ -20,6 +21,7 @@ class BookUpdateApiTest extends TestCase
         $newGenre = Genre::query()->create(['name' => '料理']);
         $book = $this->createBook($originalOwner, '9784000000001');
         $book->genres()->attach($oldGenre);
+        Sanctum::actingAs($originalOwner);
 
         $response = $this->putJson("/api/v1/books/{$book->id}", [
             'user_id' => $newOwner->id,
@@ -58,7 +60,7 @@ class BookUpdateApiTest extends TestCase
 
         $this->assertDatabaseHas('books', [
             'id' => $book->id,
-            'user_id' => $newOwner->id,
+            'user_id' => $originalOwner->id,
             'title' => '更新後の書籍',
             'isbn' => '9784000000001',
         ]);
@@ -81,9 +83,9 @@ class BookUpdateApiTest extends TestCase
         $book = $this->createBook($owner, '9784000000001');
         $otherBook = $this->createBook($owner, '9784000000002');
         $book->genres()->attach($genre);
+        Sanctum::actingAs($owner);
 
         $response = $this->putJson("/api/v1/books/{$book->id}", [
-            'user_id' => $owner->id,
             'title' => '更新後の書籍',
             'author' => '更新後の著者',
             'isbn' => $otherBook->isbn,
@@ -106,9 +108,9 @@ class BookUpdateApiTest extends TestCase
     {
         $owner = User::factory()->create();
         $genre = Genre::query()->create(['name' => '小説']);
+        Sanctum::actingAs($owner);
 
         $this->putJson('/api/v1/books/999999', [
-            'user_id' => $owner->id,
             'title' => '更新後の書籍',
             'author' => '更新後の著者',
             'isbn' => '9784000000001',
@@ -125,9 +127,9 @@ class BookUpdateApiTest extends TestCase
     {
         $owner = User::factory()->create();
         $genre = Genre::query()->create(['name' => '小説']);
+        Sanctum::actingAs($owner);
 
         $this->putJson('/api/v1/books/not-a-book', [
-            'user_id' => $owner->id,
             'title' => '更新後の書籍',
             'author' => '更新後の著者',
             'isbn' => '9784000000001',
@@ -145,9 +147,9 @@ class BookUpdateApiTest extends TestCase
         $owner = User::factory()->create();
         $genre = Genre::query()->create(['name' => '小説']);
         $book = $this->createBook($owner, '9784000000001');
+        Sanctum::actingAs($owner);
 
         $this->putJson("/api/v1/books/{$book->id}invalid", [
-            'user_id' => $owner->id,
             'title' => '更新後の書籍',
             'author' => '更新後の著者',
             'isbn' => $book->isbn,
@@ -161,6 +163,33 @@ class BookUpdateApiTest extends TestCase
 
         $this->assertDatabaseHas('books', [
             'id' => $book->id,
+            'title' => '更新前の書籍',
+        ]);
+    }
+
+    public function test_non_owner_cannot_update_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $genre = Genre::query()->create(['name' => '小説']);
+        $book = $this->createBook($owner, '9784000000001');
+        Sanctum::actingAs($otherUser);
+
+        $this->putJson("/api/v1/books/{$book->id}", [
+            'title' => '更新後の書籍',
+            'author' => '更新後の著者',
+            'isbn' => $book->isbn,
+            'published_date' => '2026-09-21',
+            'genres' => [$genre->id],
+        ])
+            ->assertForbidden()
+            ->assertExactJson([
+                'error' => 'この操作を実行する権限がありません。',
+            ]);
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'user_id' => $owner->id,
             'title' => '更新前の書籍',
         ]);
     }

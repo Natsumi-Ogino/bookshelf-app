@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,16 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('token-issuance', function (Request $request) {
+            $email = Str::lower((string) $request->input('email'));
+
+            return Limit::perMinute(5)
+                ->by($email.'|'.$request->ip())
+                ->response(fn () => response()->json([
+                    'error' => '試行回数が多すぎます。1分後に再度お試しください。',
+                ], 429));
         });
 
         $this->routes(function () {

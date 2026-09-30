@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookNullableFieldsTest extends TestCase
@@ -111,9 +112,9 @@ class BookNullableFieldsTest extends TestCase
         $genre = Genre::query()->create([
             'name' => '料理',
         ]);
+        Sanctum::actingAs($owner);
 
         $response = $this->postJson('/api/v1/books', [
-            'user_id' => $owner->id,
             'title' => 'API登録書籍',
             'author' => 'API著者',
             'genres' => [$genre->id],
@@ -152,11 +153,11 @@ class BookNullableFieldsTest extends TestCase
         ]);
 
         $book->genres()->attach($genre);
+        Sanctum::actingAs($owner);
 
         $response = $this->putJson(
             "/api/v1/books/{$book->id}",
             [
-                'user_id' => $owner->id,
                 'title' => 'API更新後書籍',
                 'author' => 'API更新後著者',
                 'genres' => [$genre->id],
