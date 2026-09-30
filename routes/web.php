@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\BookIsbnLookupController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
@@ -15,6 +16,8 @@ Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/books/isbn/{isbn}', BookIsbnLookupController::class)
+        ->name('books.isbn.lookup');
     Route::resource('genres', GenreController::class);
     Route::get('/books/create', [BookController::class, 'create'])
         ->name('books.create');

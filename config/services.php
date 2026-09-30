@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'google_books' => [
+        'endpoint' => 'https://www.googleapis.com/books/v1/volumes',
+        'key' => env('GOOGLE_BOOKS_API_KEY'),
+        'connect_timeout' => 3,
+        'timeout' => 10,
+    ],
 ];

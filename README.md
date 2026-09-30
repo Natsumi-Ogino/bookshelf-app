@@ -1,5 +1,26 @@
 # BookShelf
 
+## Google Books APIの設定
+
+Advanced版のISBN検索機能では、Google Books APIを使用します。
+
+1. Google Cloud Consoleでプロジェクトを作成します。
+2. 対象プロジェクトでBooks APIを有効にします。
+3. APIキーを作成し、APIの制限をBooks APIのみに設定します。
+4. `.env` に次の環境変数を設定します。
+
+```dotenv
+GOOGLE_BOOKS_API_KEY=発行したAPIキー
+```
+
+5. 設定後、次のコマンドでLaravelの設定キャッシュを削除します。
+
+```bash
+./vendor/bin/sail artisan config:clear
+```
+
+APIキーは秘密情報です。実際の値をGit、`.env.example`、README、ログなどへ記録しないでください。
+
 ## Basic版 ER図
 
 ![BookShelf Basic版 ER図](docs/basic-er-diagram-draft.png)
