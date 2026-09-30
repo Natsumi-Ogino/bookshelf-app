@@ -33,6 +33,12 @@
                             </x-nav-link>
                         @endif
 
+                        @if (Route::has('reports.index'))
+                            <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">
+                                {{ __('読書レポート') }}
+                            </x-nav-link>
+                        @endif
+
                         @if (Route::has('genres.index'))
                             <x-nav-link :href="route('genres.index')" :active="request()->routeIs('genres.*')">
                                 {{ __('ジャンル管理') }}
@@ -109,6 +115,12 @@
                 @if (Route::has('favorites.index'))
                     <x-responsive-nav-link :href="route('favorites.index')" :active="request()->routeIs('favorites.index')">
                         {{ __('お気に入り') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                @if (Route::has('reports.index'))
+                    <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.index')">
+                        {{ __('読書レポート') }}
                     </x-responsive-nav-link>
                 @endif
 

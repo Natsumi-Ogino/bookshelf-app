@@ -5,6 +5,7 @@ use App\Http\Controllers\BookIsbnLookupController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,8 @@ Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/reports', ReportController::class)
+        ->name('reports.index');
     Route::get('/books/isbn/{isbn}', BookIsbnLookupController::class)
         ->name('books.isbn.lookup');
     Route::resource('genres', GenreController::class);
