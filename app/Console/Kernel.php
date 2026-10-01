@@ -15,6 +15,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('sanctum:prune-expired --hours=24')
             ->daily()
             ->withoutOverlapping();
+
+        $schedule->command('reading-plans:process-reminders')
+            ->dailyAt('00:00')
+            ->timezone('Asia/Tokyo')
+            ->withoutOverlapping();
     }
 
     /**

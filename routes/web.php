@@ -4,7 +4,9 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookIsbnLookupController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
@@ -19,6 +21,14 @@ Route::get('/ranking', [RankingController::class, 'index'])
 Route::middleware('auth')->group(function () {
     Route::get('/reports', ReportController::class)
         ->name('reports.index');
+    Route::patch('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])
+        ->name('reading-plans.complete');
+    Route::resource('reading-plans', ReadingPlanController::class)
+        ->except('show');
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
     Route::get('/books/isbn/{isbn}', BookIsbnLookupController::class)
         ->name('books.isbn.lookup');
     Route::resource('genres', GenreController::class);
