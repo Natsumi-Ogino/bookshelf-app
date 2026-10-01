@@ -11,6 +11,9 @@ class GoogleBooksService
     ) {}
 
     /**
+     * ISBNを使ってGoogle Books APIから書籍情報を取得します。
+     *
+     * @param  string  $isbn  検索する13桁のISBN
      * @return array{
      *     title: ?string,
      *     author: ?string,

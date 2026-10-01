@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Hash;
 
 class TokenController extends Controller
 {
+    /**
+     * 認証情報を確認し、有効期限付きSanctumトークンを発行します。
+     *
+     * @param  IssueTokenRequest  $request  検証済み認証情報と端末名を含むリクエスト
+     * @return JsonResponse 発行したトークン情報を含むJSONレスポンス
+     */
     public function store(IssueTokenRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -39,6 +45,12 @@ class TokenController extends Controller
         ], 201);
     }
 
+    /**
+     * 現在のリクエストで使用しているSanctumトークンを削除します。
+     *
+     * @param  Request  $request  認証済みトークンを含むリクエスト
+     * @return Response 本文なしのHTTPレスポンス
+     */
     public function destroy(Request $request): Response
     {
         $request->user()->currentAccessToken()->delete();

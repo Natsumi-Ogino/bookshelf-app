@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Log;
 
 class BookIsbnLookupController extends Controller
 {
+    /**
+     * 検証済みISBNでGoogle Books APIを検索し、書籍情報を返します。
+     *
+     * @param  LookupBookByIsbnRequest  $request  検証済みISBNを含むリクエスト
+     * @param  GoogleBooksService  $googleBooks  Google Books API連携サービス
+     * @return JsonResponse 書籍情報またはエラーを含むJSONレスポンス
+     */
     public function __invoke(
         LookupBookByIsbnRequest $request,
         GoogleBooksService $googleBooks

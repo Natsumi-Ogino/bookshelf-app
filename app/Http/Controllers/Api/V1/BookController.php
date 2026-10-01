@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
+    /**
+     * 検索条件に一致する書籍をページネーション形式で返します。
+     *
+     * @param  IndexBookRequest  $request  検証済みの検索条件を含むリクエスト
+     * @return AnonymousResourceCollection 書籍一覧のAPI Resourceコレクション
+     */
     public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
         $filters = $request->validated();
@@ -41,6 +47,12 @@ class BookController extends Controller
         return BookResource::collection($books);
     }
 
+    /**
+     * 認証ユーザーを所有者として書籍とジャンル紐付けを登録します。
+     *
+     * @param  StoreBookRequest  $request  検証済み書籍データを含むリクエスト
+     * @return JsonResponse 登録した書籍を含むJSONレスポンス
+     */
     public function store(StoreBookRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -61,6 +73,12 @@ class BookController extends Controller
         return (new BookResource($book))->response()->setStatusCode(201);
     }
 
+    /**
+     * 指定された書籍のジャンル、レビュー、評価集計を返します。
+     *
+     * @param  string  $id  取得対象の書籍ID
+     * @return BookResource|JsonResponse 書籍Resourceまたは404エラー
+     */
     public function show(string $id): BookResource|JsonResponse
     {
         $bookId = filter_var($id, FILTER_VALIDATE_INT, [
@@ -84,6 +102,13 @@ class BookController extends Controller
         return new BookResource($book);
     }
 
+    /**
+     * 所有者認可後に書籍とジャンル紐付けを更新します。
+     *
+     * @param  UpdateBookRequest  $request  検証済み書籍データを含むリクエスト
+     * @param  string  $id  更新対象の書籍ID
+     * @return JsonResponse 更新した書籍または404エラーを含むJSONレスポンス
+     */
     public function update(UpdateBookRequest $request, string $id): JsonResponse
     {
         $bookId = filter_var($id, FILTER_VALIDATE_INT, [
@@ -116,6 +141,12 @@ class BookController extends Controller
         return (new BookResource($book))->response();
     }
 
+    /**
+     * 所有者認可後に指定された書籍を削除します。
+     *
+     * @param  string  $id  削除対象の書籍ID
+     * @return Response|JsonResponse 本文なしの成功レスポンスまたは404エラー
+     */
     public function destroy(string $id): Response|JsonResponse
     {
         $bookId = filter_var($id, FILTER_VALIDATE_INT, [

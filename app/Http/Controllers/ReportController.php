@@ -10,6 +10,12 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    /**
+     * ログインユーザーのレビューから読書統計を集計して表示します。
+     *
+     * @param  Request  $request  認証ユーザーを含むリクエスト
+     * @return View マイ読書レポート画面
+     */
     public function __invoke(Request $request): View
     {
         $reviews = $request->user()

@@ -47,26 +47,31 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /** @return HasMany ユーザーが登録した書籍との関連 */
     public function books(): HasMany
     {
         return $this->hasMany(Book::class);
     }
 
+    /** @return HasMany ユーザーが投稿したレビューとの関連 */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
+    /** @return BelongsToMany ユーザーがお気に入り登録した書籍との関連 */
     public function favoriteBooks(): BelongsToMany
     {
         return $this->belongsToMany(Book::class, 'favorites');
     }
 
+    /** @return BelongsToMany ユーザーがいいねしたレビューとの関連 */
     public function likedReviews(): BelongsToMany
     {
         return $this->belongsToMany(Review::class, 'review_likes');
     }
 
+    /** @return HasMany ユーザーが作成した読書計画との関連 */
     public function readingPlans(): HasMany
     {
         return $this->hasMany(ReadingPlan::class);
