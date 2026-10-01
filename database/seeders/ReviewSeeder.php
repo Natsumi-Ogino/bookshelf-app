@@ -28,34 +28,29 @@ class ReviewSeeder extends Seeder
             '9784822251468',
         ];
 
-        $reviewerIndexesByBook = [
-            [0, 1, 2],
-            [1, 2, 3],
-            [2, 3, 4],
-            [3, 4, 0],
-            [4, 0, 1],
-            [0, 2, 4],
-            [1, 3, 0],
-            [2, 4, 1],
-            [3, 0, 2],
-            [4, 1, 3],
-            [0, 4],
-        ];
-
         $comments = [
+            1 => [
+                '残念ながら合いませんでした。',
+                '期待と違いました。',
+            ],
+            2 => [
+                '少し期待外れでした。',
+                '内容が薄い印象。',
+                'もう少し深掘りしてほしかった。',
+            ],
             3 => [
                 '普通でした。',
-                '良い点も気になる点もありました。',
-                '期待したほどではなかったです。',
+                '可もなく不可もなく。',
+                '期待したほどではなかった。',
             ],
             4 => [
                 'とても参考になりました。',
                 '読みやすくておすすめです。',
-                '期待どおりの内容でした。',
+                '期待通りの内容でした。',
             ],
             5 => [
                 '素晴らしい本でした！',
-                '考え方が変わりました。',
+                '人生が変わりました。',
                 '何度も読み返しています。',
             ],
         ];
@@ -80,13 +75,14 @@ class ReviewSeeder extends Seeder
 
         foreach ($isbnOrder as $bookIndex => $isbn) {
             $book = $books->get($isbn);
+            $reviewCount = random_int(2, 4);
+            $reviewers = $users->random($reviewCount)->values();
 
-            foreach ($reviewerIndexesByBook[$bookIndex] as $reviewIndex => $userIndex) {
-                $rating = 3 + (($bookIndex + $reviewIndex) % 3);
+            foreach ($reviewers as $reviewIndex => $reviewer) {
+                $rating = 1 + (($bookIndex + $reviewIndex) % 5);
                 $commentOptions = $comments[$rating];
 
-                $users->get($userIndex)
-                    ->reviews()
+                $reviewer->reviews()
                     ->create([
                         'book_id' => $book->getKey(),
                         'rating' => $rating,

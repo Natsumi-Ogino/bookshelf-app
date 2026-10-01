@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class BookSeeder extends Seeder
 {
@@ -13,9 +15,13 @@ class BookSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::query()
+        $users = User::query()
             ->oldest('id')
-            ->firstOrFail();
+            ->get();
+
+        if ($users->isEmpty()) {
+            throw new RuntimeException('BookSeederの実行にはユーザーが必要です。');
+        }
 
         $books = [
             [
@@ -123,9 +129,12 @@ class BookSeeder extends Seeder
             $genreNames = $bookData['genres'];
             unset($bookData['genres']);
 
-            $book = $user->books()->firstOrCreate(
+            $book = Book::query()->firstOrCreate(
                 ['isbn' => $bookData['isbn']],
-                $bookData
+                [
+                    ...$bookData,
+                    'user_id' => $users->random()->id,
+                ]
             );
 
             $genreIds = array_map(

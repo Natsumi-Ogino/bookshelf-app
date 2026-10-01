@@ -27,8 +27,8 @@ class ReviewLikeSeeder extends Seeder
             ->oldest('id')
             ->get();
 
-        if ($reviews->count() !== 32) {
-            throw new RuntimeException('ReviewLikeSeederの実行には32件のレビューが必要です。');
+        if ($reviews->isEmpty()) {
+            throw new RuntimeException('ReviewLikeSeederの実行にはレビューが必要です。');
         }
 
         foreach ($reviews as $reviewIndex => $review) {
