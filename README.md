@@ -196,7 +196,7 @@ Accept: application/json
 
 ```bash
 ./vendor/bin/sail artisan test
-./vendor/bin/sail artisan test --coverage
+SAIL_XDEBUG_MODE=coverage ./vendor/bin/sail artisan test --coverage --min=80 --compact
 ./vendor/bin/sail bin pint --test
 ./vendor/bin/sail npm run build
 ```
