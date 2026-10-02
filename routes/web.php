@@ -21,7 +21,7 @@ Route::get('/ranking', [RankingController::class, 'index'])
 Route::middleware('auth')->group(function () {
     Route::get('/reports', ReportController::class)
         ->name('reports.index');
-    Route::patch('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])
+    Route::post('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])
         ->name('reading-plans.complete');
     Route::resource('reading-plans', ReadingPlanController::class)
         ->except('show');

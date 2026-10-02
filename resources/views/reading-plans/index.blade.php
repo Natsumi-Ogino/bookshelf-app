@@ -71,7 +71,6 @@
                                         <a href="{{ route('reading-plans.edit', $readingPlan) }}" class="rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-600">編集</a>
                                         <form action="{{ route('reading-plans.complete', $readingPlan) }}" method="POST">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" class="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-600">読了</button>
                                         </form>
                                     @endif

@@ -33,7 +33,7 @@ class ReadingPlanManagementTest extends TestCase
             ->assertRedirect(route('login'));
         $this->put(route('reading-plans.update', $readingPlan))
             ->assertRedirect(route('login'));
-        $this->patch(route('reading-plans.complete', $readingPlan))
+        $this->post(route('reading-plans.complete', $readingPlan))
             ->assertRedirect(route('login'));
         $this->delete(route('reading-plans.destroy', $readingPlan))
             ->assertRedirect(route('login'));
@@ -220,7 +220,7 @@ class ReadingPlanManagementTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('reading-plans.complete', $readingPlan))
+            ->post(route('reading-plans.complete', $readingPlan))
             ->assertRedirect(route('reading-plans.index'))
             ->assertSessionHas('success', '読書計画を完了しました。');
 
@@ -259,7 +259,7 @@ class ReadingPlanManagementTest extends TestCase
             ])
             ->assertForbidden();
         $this->actingAs($otherUser)
-            ->patch(route('reading-plans.complete', $readingPlan))
+            ->post(route('reading-plans.complete', $readingPlan))
             ->assertForbidden();
         $this->actingAs($otherUser)
             ->delete(route('reading-plans.destroy', $readingPlan))
