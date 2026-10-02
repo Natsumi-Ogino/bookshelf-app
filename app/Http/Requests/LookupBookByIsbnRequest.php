@@ -33,6 +33,14 @@ class LookupBookByIsbnRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'isbn.required' => 'ISBNは13桁で入力してください。',
+            'isbn.string' => 'ISBNは13桁で入力してください。',
+        ];
+    }
+
     protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(
