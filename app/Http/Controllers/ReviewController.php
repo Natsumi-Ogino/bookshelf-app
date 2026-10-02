@@ -12,6 +12,13 @@ use Illuminate\Http\RedirectResponse;
 
 class ReviewController extends Controller
 {
+    /**
+     * ログインユーザーのレビューを指定された書籍へ投稿します。
+     *
+     * @param  StoreReviewRequest  $request  検証済みの評価とコメントを含むリクエスト
+     * @param  Book  $book  レビュー対象の書籍
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
+     */
     public function store(StoreReviewRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('create', Review::class);
@@ -39,6 +46,12 @@ class ReviewController extends Controller
             ->with('success', 'レビューを投稿しました。');
     }
 
+    /**
+     * 所有者にレビュー編集画面を表示します。
+     *
+     * @param  Review  $review  編集対象のレビュー
+     * @return View レビュー編集画面
+     */
     public function edit(Review $review): View
     {
         $this->authorize('update', $review);
@@ -48,6 +61,13 @@ class ReviewController extends Controller
         return view('reviews.edit', compact('review'));
     }
 
+    /**
+     * 所有者のレビュー内容を更新します。
+     *
+     * @param  UpdateReviewRequest  $request  検証済みの評価とコメントを含むリクエスト
+     * @param  Review  $review  更新対象のレビュー
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
+     */
     public function update(UpdateReviewRequest $request, Review $review): RedirectResponse
     {
         $this->authorize('update', $review);
@@ -59,6 +79,12 @@ class ReviewController extends Controller
             ->with('success', 'レビューを更新しました。');
     }
 
+    /**
+     * 所有者のレビューを削除します。
+     *
+     * @param  Review  $review  削除対象のレビュー
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
+     */
     public function destroy(Review $review): RedirectResponse
     {
         $this->authorize('delete', $review);
@@ -71,6 +97,12 @@ class ReviewController extends Controller
             ->with('success', 'レビューを削除しました。');
     }
 
+    /**
+     * 同じ書籍への重複レビューを日本語エラー付きで差し戻します。
+     *
+     * @param  Book  $book  重複レビューの対象書籍
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
+     */
     private function duplicateReviewResponse(Book $book): RedirectResponse
     {
         return redirect()

@@ -15,7 +15,10 @@ use Illuminate\View\View;
 class BookController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 検索・ジャンル・並び順の条件を反映した書籍一覧を表示します。
+     *
+     * @param  IndexBookRequest  $request  検証済みの一覧表示条件を含むリクエスト
+     * @return View 書籍一覧画面
      */
     public function index(IndexBookRequest $request): View
     {
@@ -68,7 +71,9 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 書籍登録画面と選択可能なジャンル一覧を表示します。
+     *
+     * @return View 書籍登録画面
      */
     public function create(): View
     {
@@ -82,7 +87,10 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ログインユーザーの書籍を登録し、ジャンルを紐づけます。
+     *
+     * @param  StoreBookRequest  $request  検証済みの書籍情報を含むリクエスト
+     * @return RedirectResponse 登録した書籍の詳細画面へのリダイレクト
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
@@ -108,7 +116,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 指定された書籍とジャンル・レビュー・評価情報を表示します。
+     *
+     * @param  Book  $book  表示対象の書籍
+     * @return View 書籍詳細画面
      */
     public function show(Book $book): View
     {
@@ -126,7 +137,10 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * 所有者に書籍編集画面と選択可能なジャンル一覧を表示します。
+     *
+     * @param  Book  $book  編集対象の書籍
+     * @return View 書籍編集画面
      */
     public function edit(Book $book): View
     {
@@ -142,7 +156,11 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 所有者の書籍情報とジャンルの紐づけを更新します。
+     *
+     * @param  UpdateBookRequest  $request  検証済みの書籍情報を含むリクエスト
+     * @param  Book  $book  更新対象の書籍
+     * @return RedirectResponse 更新した書籍の詳細画面へのリダイレクト
      */
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
@@ -163,7 +181,10 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 所有者の書籍を削除します。
+     *
+     * @param  Book  $book  削除対象の書籍
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function destroy(Book $book): RedirectResponse
     {

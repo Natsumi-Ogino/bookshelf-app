@@ -7,6 +7,11 @@ use Illuminate\View\View;
 
 class RankingController extends Controller
 {
+    /**
+     * 平均評価とレビュー数を基準に上位10冊を表示します。
+     *
+     * @return View 書籍ランキング画面
+     */
     public function index(): View
     {
         $rankedBooks = Book::query()
