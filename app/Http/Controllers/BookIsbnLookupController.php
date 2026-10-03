@@ -33,7 +33,7 @@ class BookIsbnLookupController extends Controller
 
             return response()->json([
                 'error' => 'API通信エラーが発生しました。',
-            ], 500);
+            ], 503);
         }
 
         if ($bookData === null) {

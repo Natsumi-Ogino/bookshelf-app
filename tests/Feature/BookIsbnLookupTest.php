@@ -60,6 +60,10 @@ class BookIsbnLookupTest extends TestCase
                 'totalItems' => 1,
                 'items' => [[
                     'volumeInfo' => [
+                        'industryIdentifiers' => [[
+                            'type' => 'ISBN_13',
+                            'identifier' => '9784101010014',
+                        ]],
                         'title' => '吾輩は猫である',
                         'authors' => ['夏目漱石', '共同著者'],
                         'publishedDate' => '1905-01-01',
@@ -111,6 +115,10 @@ class BookIsbnLookupTest extends TestCase
             'https://www.googleapis.com/books/v1/volumes*' => Http::response([
                 'items' => [[
                     'volumeInfo' => [
+                        'industryIdentifiers' => [[
+                            'type' => 'ISBN_13',
+                            'identifier' => '9784101010014',
+                        ]],
                         'title' => '日付確認用書籍',
                         'publishedDate' => $sourceDate,
                     ],
@@ -139,7 +147,12 @@ class BookIsbnLookupTest extends TestCase
         Http::preventStrayRequests();
         Http::fake([
             'https://www.googleapis.com/books/v1/volumes*' => Http::response([
-                'items' => [['volumeInfo' => []]],
+                'items' => [['volumeInfo' => [
+                    'industryIdentifiers' => [[
+                        'type' => 'ISBN_13',
+                        'identifier' => '9784101010014',
+                    ]],
+                ]]],
             ], 200),
         ]);
 
@@ -173,7 +186,66 @@ class BookIsbnLookupTest extends TestCase
             ]);
     }
 
-    public function test_google_books_error_returns_approved_500_error(): void
+    public function test_exact_isbn_match_is_selected_from_multiple_results(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://www.googleapis.com/books/v1/volumes*' => Http::response([
+                'items' => [
+                    [
+                        'volumeInfo' => [
+                            'industryIdentifiers' => [[
+                                'type' => 'ISBN_13',
+                                'identifier' => '9784101010007',
+                            ]],
+                            'title' => '別の書籍',
+                        ],
+                    ],
+                    [
+                        'volumeInfo' => [
+                            'industryIdentifiers' => [[
+                                'type' => 'ISBN_13',
+                                'identifier' => '9784101010014',
+                            ]],
+                            'title' => '一致した書籍',
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->getJson(route('books.isbn.lookup', '9784101010014'))
+            ->assertOk()
+            ->assertJsonPath('title', '一致した書籍');
+    }
+
+    public function test_results_without_exact_isbn_match_return_404(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://www.googleapis.com/books/v1/volumes*' => Http::response([
+                'items' => [[
+                    'volumeInfo' => [
+                        'industryIdentifiers' => [[
+                            'type' => 'ISBN_13',
+                            'identifier' => '9784101010007',
+                        ]],
+                        'title' => '別の書籍',
+                    ],
+                ]],
+            ], 200),
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->getJson(route('books.isbn.lookup', '9784101010014'))
+            ->assertNotFound()
+            ->assertExactJson([
+                'error' => '書籍が見つかりませんでした。',
+            ]);
+    }
+
+    public function test_google_books_error_returns_approved_503_error(): void
     {
         Http::preventStrayRequests();
         Http::fake([
@@ -182,13 +254,13 @@ class BookIsbnLookupTest extends TestCase
 
         $this->actingAs(User::factory()->create())
             ->getJson(route('books.isbn.lookup', '9784101010014'))
-            ->assertStatus(500)
+            ->assertStatus(503)
             ->assertExactJson([
                 'error' => 'API通信エラーが発生しました。',
             ]);
     }
 
-    public function test_connection_failure_returns_approved_500_error(): void
+    public function test_connection_failure_returns_approved_503_error(): void
     {
         Http::preventStrayRequests();
         Http::fake(fn () => throw new ConnectionException(
@@ -197,7 +269,7 @@ class BookIsbnLookupTest extends TestCase
 
         $this->actingAs(User::factory()->create())
             ->getJson(route('books.isbn.lookup', '9784101010014'))
-            ->assertStatus(500)
+            ->assertStatus(503)
             ->assertExactJson([
                 'error' => 'API通信エラーが発生しました。',
             ]);

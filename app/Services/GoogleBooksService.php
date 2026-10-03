@@ -53,7 +53,10 @@ class GoogleBooksService
 
         $response->throw();
 
-        $volumeInfo = $response->json('items.0.volumeInfo');
+        $volumeInfo = $this->findMatchingVolumeInfo(
+            $response->json('items'),
+            $isbn
+        );
 
         if (! is_array($volumeInfo)) {
             return null;
@@ -76,6 +79,53 @@ class GoogleBooksService
                 $volumeInfo['imageLinks']['thumbnail'] ?? null
             ),
         ];
+    }
+
+    /**
+     * APIの検索結果からISBN-13が完全一致する書籍情報を取得します。
+     *
+     * @param  mixed  $items  Google Books APIの検索結果
+     * @param  string  $isbn  検索した13桁のISBN
+     * @return array<string, mixed>|null
+     */
+    private function findMatchingVolumeInfo(
+        mixed $items,
+        string $isbn
+    ): ?array {
+        if (! is_array($items)) {
+            return null;
+        }
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $volumeInfo = $item['volumeInfo'] ?? null;
+
+            if (! is_array($volumeInfo)) {
+                continue;
+            }
+
+            $identifiers = $volumeInfo['industryIdentifiers'] ?? null;
+
+            if (! is_array($identifiers)) {
+                continue;
+            }
+
+            foreach ($identifiers as $identifier) {
+                if (! is_array($identifier)) {
+                    continue;
+                }
+
+                if (($identifier['type'] ?? null) === 'ISBN_13'
+                    && ($identifier['identifier'] ?? null) === $isbn) {
+                    return $volumeInfo;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function formatAuthors(mixed $authors): ?string
