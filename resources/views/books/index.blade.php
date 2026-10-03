@@ -58,19 +58,19 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <button type="submit" class="whitespace-nowrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                     検索
                                 </button>
-                                <a href="{{ route('books.index') }}" class="text-gray-600 hover:text-gray-900">
+                                <a href="{{ route('books.index') }}" class="whitespace-nowrap text-gray-600 hover:text-gray-900">
                                     リセット
                                 </a>
-                                <a href="{{ route('books.export.csv', request()->only(['keyword', 'genre', 'sort'])) }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                <a href="{{ route('books.export.csv', request()->only(['keyword', 'genre', 'sort'])) }}" class="whitespace-nowrap bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                                     CSV出力
                                 </a>
                             </div>
-                            <a href="{{ route('books.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            <a href="{{ route('books.create') }}" class="w-full whitespace-nowrap bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded sm:w-auto">
                                 書籍を登録
                             </a>
                         </div>
