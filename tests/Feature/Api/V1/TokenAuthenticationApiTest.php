@@ -74,6 +74,22 @@ class TokenAuthenticationApiTest extends TestCase
             );
     }
 
+    public function test_token_request_rejects_email_containing_newline_characters(): void
+    {
+        $this->postJson('/api/v1/tokens', [
+            'email' => "user@example.com\r\nBcc: attacker@example.com",
+            'password' => 'password',
+            'device_name' => 'test-device',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'errors.email.0',
+                'メールアドレスは正しい形式で入力してください。'
+            );
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
     public function test_invalid_credentials_return_approved_401_error(): void
     {
         $user = User::factory()->create([

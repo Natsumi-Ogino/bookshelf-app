@@ -27,6 +27,7 @@ class IssueTokenRequest extends FormRequest
                 'bail',
                 'required',
                 'string',
+                'not_regex:/[\r\n]/',
                 'email',
                 'max:255',
             ],
@@ -49,6 +50,7 @@ class IssueTokenRequest extends FormRequest
         return [
             'email.required' => 'メールアドレスは必須です。',
             'email.string' => 'メールアドレスは文字列で入力してください。',
+            'email.not_regex' => 'メールアドレスは正しい形式で入力してください。',
             'email.email' => 'メールアドレスは正しい形式で入力してください。',
             'email.max' => 'メールアドレスは255文字以内で入力してください。',
             'password.required' => 'パスワードは必須です。',

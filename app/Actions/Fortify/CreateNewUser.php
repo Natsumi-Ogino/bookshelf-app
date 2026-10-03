@@ -27,11 +27,14 @@ class CreateNewUser implements CreatesNewUsers
             'email' => [
                 'required',
                 'string',
+                'not_regex:/[\r\n]/',
                 'email',
                 'max:255',
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+        ], [
+            'email.not_regex' => 'メールアドレスはメール形式で入力してください',
         ])->validate();
 
         return User::create([

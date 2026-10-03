@@ -123,6 +123,23 @@ class BasicAuthenticationTest extends TestCase
         $this->assertDatabaseCount('users', 0);
     }
 
+    public function test_registration_rejects_email_containing_newline_characters(): void
+    {
+        $response = $this->post('/register', [
+            'name' => '新規ユーザー',
+            'email' => "user@example.com\r\nBcc: attacker@example.com",
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'email' => 'メールアドレスはメール形式で入力してください',
+        ]);
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+    }
+
     public function test_registered_user_can_log_in(): void
     {
         $user = User::factory()->create([

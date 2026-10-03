@@ -26,10 +26,13 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'email' => [
                 'required',
                 'string',
+                'not_regex:/[\r\n]/',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
+        ], [
+            'email.not_regex' => 'メールアドレスはメール形式で入力してください',
         ])->validateWithBag('updateProfileInformation');
 
         if ($input['email'] !== $user->email &&
