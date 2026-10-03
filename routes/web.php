@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\BookCsvExportController;
 use App\Http\Controllers\BookIsbnLookupController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [BookController::class, 'index'])
     ->name('books.index');
+
+Route::get('/books/export/csv', BookCsvExportController::class)
+    ->name('books.export.csv');
 
 Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');

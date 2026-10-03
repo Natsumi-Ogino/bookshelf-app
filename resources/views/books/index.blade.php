@@ -66,6 +66,9 @@
                                 <a href="{{ route('books.index') }}" class="text-gray-600 hover:text-gray-900">
                                     リセット
                                 </a>
+                                <a href="{{ route('books.export.csv', request()->only(['keyword', 'genre', 'sort'])) }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                    CSV出力
+                                </a>
                             </div>
                             <a href="{{ route('books.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 書籍を登録

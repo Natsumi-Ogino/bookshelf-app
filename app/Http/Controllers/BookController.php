@@ -7,7 +7,7 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\BookSearchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -20,50 +20,18 @@ class BookController extends Controller
      * @param  IndexBookRequest  $request  検証済みの一覧表示条件を含むリクエスト
      * @return View 書籍一覧画面
      */
-    public function index(IndexBookRequest $request): View
-    {
+    public function index(
+        IndexBookRequest $request,
+        BookSearchService $bookSearch
+    ): View {
         $filters = $request->validated();
-        $sort = $filters['sort'] ?? 'latest';
 
         $genres = Genre::query()
             ->orderBy('name')
             ->get();
 
-        $booksQuery = Book::query()
-            ->with('genres')
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->when($filters['keyword'] ?? null, function (Builder $query, string $keyword): void {
-                $query->where(function (Builder $query) use ($keyword): void {
-                    $query->where('title', 'like', "%{$keyword}%")
-                        ->orWhere('author', 'like', "%{$keyword}%");
-                });
-            })
-            ->when($filters['genre'] ?? null, function (Builder $query, int|string $genreId): void {
-                $query->whereHas(
-                    'genres',
-                    fn (Builder $genreQuery) => $genreQuery->whereKey($genreId)
-                );
-            });
-
-        $booksQuery = match ($sort) {
-            'oldest' => $booksQuery
-                ->orderBy('created_at')
-                ->orderBy('id'),
-            'title' => $booksQuery
-                ->orderBy('title')
-                ->orderBy('id'),
-            'rating' => $booksQuery
-                ->orderByRaw('CASE WHEN reviews_avg_rating IS NULL THEN 1 ELSE 0 END')
-                ->orderByDesc('reviews_avg_rating')
-                ->orderByDesc('reviews_count')
-                ->orderBy('id'),
-            default => $booksQuery
-                ->orderByDesc('created_at')
-                ->orderBy('id'),
-        };
-
-        $books = $booksQuery
+        $books = $bookSearch
+            ->query($filters)
             ->paginate(10)
             ->appends($filters);
 
